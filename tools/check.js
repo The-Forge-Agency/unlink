@@ -14,6 +14,10 @@ for (const f of walk(path.join(ROOT, 'src')).filter((f) => f.endsWith('.js'))) {
 const m = JSON.parse(fs.readFileSync(path.join(ROOT, 'manifest.json'), 'utf8'));
 if (m.manifest_version !== 3) fail('manifest_version doit valoir 3');
 if (!/^\d+(\.\d+){0,3}$/.test(m.version)) fail(`version invalide : ${m.version}`);
+// Limites du Chrome Web Store (sinon le paquet est refusé à l'envoi)
+if ([...(m.description || '')].length > 132) fail(`description trop longue : ${[...m.description].length} caractères (132 maximum)`);
+if ([...(m.name || '')].length > 75) fail(`nom trop long : ${[...m.name].length} caractères (75 maximum)`);
+if (m.short_name && [...m.short_name].length > 12) fail(`short_name trop long (12 maximum)`);
 const refs = [
   m.background?.service_worker && `src/${m.background.service_worker.replace(/^src\//, '')}`,
   m.action?.default_popup, m.options_page,
