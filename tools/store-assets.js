@@ -110,7 +110,7 @@ const scene = (caption, sub, inner, extraCss = '') => `<!doctype html><html lang
     await p.setViewport({ width: w, height: h, deviceScaleFactor: 1 });
     await p.setContent(html, { waitUntil: 'load' });
     await new Promise((r) => setTimeout(r, 300));
-    await p.screenshot({ path: path.join(OUT, file) });
+    await p.screenshot({ path: path.join(OUT, file), type: 'jpeg', quality: 95 }); // le Store refuse les PNG avec alpha
     console.log('✓', file);
   };
 
@@ -119,7 +119,7 @@ const scene = (caption, sub, inner, extraCss = '') => `<!doctype html><html lang
     scene('Ne vois que ceux qui insistent', 'La vue « Jamais répondu » garde les conversations où l’on t’écrit alors que tu n’as jamais répondu.',
       `<div class="side"><div class="side-title">Messagerie</div>${filterBar(17)}<div class="unlink-panel"><p class="unlink-panel-status">17 conversations sans réponse de ta part · 582 analysées</p>${panelRows(PEOPLE)}</div></div>
        <div class="main">${thread(PEOPLE[0])}</div>`),
-    'screenshot-1-jamais-repondu.png');
+    'screenshot-1-jamais-repondu.jpg');
 
   // 2. Nettoyage en un geste
   const card = `<div class="stack"><div class="card ok" style="--c:#f5a30b">
@@ -131,7 +131,7 @@ const scene = (caption, sub, inner, extraCss = '') => `<!doctype html><html lang
     scene('Un geste, et c’est réglé', 'Bouton ⚡ UnLink ou ⌥⇧U : la relation est retirée, la conversation supprimée. Chaque action est vérifiée.',
       `<div class="side"><div class="side-title">Messagerie</div>${filterBar(16)}<div class="unlink-panel"><p class="unlink-panel-status">16 conversations sans réponse de ta part · 582 analysées</p>${panelRows(PEOPLE.slice(0, 1).concat(PEOPLE.slice(2)), -1)}</div></div>
        <div class="main">${thread(PEOPLE[1])}${card}</div>`, CARD_CSS),
-    'screenshot-2-un-geste.png');
+    'screenshot-2-un-geste.jpg');
 
   // 3. Nettoyage en masse (vraie page, données fictives)
   const me = 'ACoAAMOI';
@@ -158,14 +158,14 @@ const scene = (caption, sub, inner, extraCss = '') => `<!doctype html><html lang
   await new Promise((r) => setTimeout(r, 1200));
   await p.evaluate(() => { const r = document.querySelectorAll('#rows input[type="checkbox"]'); if (r[3]) r[3].click(); });
   await new Promise((r) => setTimeout(r, 200));
-  await p.screenshot({ path: path.join(OUT, 'screenshot-3-nettoyage-en-masse.png') });
-  console.log('✓ screenshot-3-nettoyage-en-masse.png');
+  await p.screenshot({ path: path.join(OUT, 'screenshot-3-nettoyage-en-masse.jpg'), type: 'jpeg', quality: 95 });
+  console.log('✓ screenshot-3-nettoyage-en-masse.jpg');
 
   // 4. Page d'accueil (vraie page, fin de l'animation)
   await p.goto(`chrome-extension://${extId}/src/welcome/welcome.html`);
   await new Promise((r) => setTimeout(r, 3400));
-  await p.screenshot({ path: path.join(OUT, 'screenshot-4-accueil.png') });
-  console.log('✓ screenshot-4-accueil.png');
+  await p.screenshot({ path: path.join(OUT, 'screenshot-4-accueil.jpg'), type: 'jpeg', quality: 95 });
+  console.log('✓ screenshot-4-accueil.jpg');
 
   // Tuile 440×280 et bannière 1400×560
   const promoCss = `body { background: #18202e; color: #f6f7f9; font-family: "Bricolage Grotesque", sans-serif; display: grid; place-items: center; }`;
@@ -174,7 +174,7 @@ const scene = (caption, sub, inner, extraCss = '') => `<!doctype html><html lang
       .t img { width: 86px; height: 86px; } .t h1 { margin: 0; font: 760 38px/1 "Bricolage Grotesque"; letter-spacing: -.02em; }
       .t p { margin: 0; font: 500 16px/1.3 -apple-system, sans-serif; color: #c9cfda; max-width: 330px; }</style></head>
       <body style="width:440px;height:280px"><div class="t"><img src="${LOGO}"><h1>UnLink</h1><p>Nettoie les relances LinkedIn restées sans réponse, en un geste.</p></div></body></html>`,
-    'promo-440x280.png', 440, 280);
+    'promo-440x280.jpg', 440, 280);
   await shoot(`<!doctype html><html><head><meta charset="utf-8"><style>${BASE_CSS}${promoCss}
       .m { width: 1400px; height: 560px; display: grid; grid-template-columns: 1fr 520px; align-items: center; gap: 60px; padding: 0 90px; }
       .m img { width: 84px; height: 84px; } .m h1 { margin: 22px 0 14px; font: 780 62px/1.02 "Bricolage Grotesque"; letter-spacing: -.035em; }
@@ -183,7 +183,7 @@ const scene = (caption, sub, inner, extraCss = '') => `<!doctype html><html lang
       <body style="width:1400px;height:560px"><div class="m"><div><img src="${LOGO}"><h1>Ta messagerie LinkedIn va respirer.</h1>
       <p class="pitch">UnLink repère les relances restées sans réponse, retire la relation et supprime la conversation en un geste. Tout reste dans ton navigateur.</p></div>
       <div class="ui">${filterBar(17)}<div class="unlink-panel">${panelRows(PEOPLE.slice(0, 4), -1)}</div></div></div></body></html>`,
-    'marquee-1400x560.png', 1400, 560);
+    'marquee-1400x560.jpg', 1400, 560);
 
   await b.close();
 })().catch((e) => { console.error(e); process.exit(1); });

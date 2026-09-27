@@ -2,6 +2,9 @@
 
 ## Informations
 
+- **ID de l’extension** : `obkdmhneoandnpfcbcfjioepjbpcleag` — éditeur : The Forge Agency
+- **Fiche** : https://chromewebstore.google.com/detail/obkdmhneoandnpfcbcfjioepjbpcleag
+
 - **Nom** : UnLink — nettoyage LinkedIn en 1 clic
 - **Catégorie** : Productivité
 - **Langue** : Français
@@ -44,9 +47,9 @@ UnLink a un seul objectif : aider l’utilisateur à nettoyer sa messagerie Link
 ## Visuels
 
 - Icône : `icons/icon128.png`
-- Captures d’écran 1280 × 800 : `store/screenshot-1…4-*.png`
-- Petite tuile promotionnelle 440 × 280 : `store/promo-440x280.png`
-- Bannière 1400 × 560 : `store/marquee-1400x560.png`
+- Captures d’écran 1280 × 800 : `store/screenshot-1…4-*.jpg`
+- Petite tuile promotionnelle 440 × 280 : `store/promo-440x280.jpg`
+- Bannière 1400 × 560 : `store/marquee-1400x560.jpg`
 - Tout est régénéré par `node tools/store-assets.js`
 
 ## Publication automatique (CI)

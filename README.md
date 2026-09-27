@@ -4,7 +4,7 @@
 
 <p align="center">Nettoie ta messagerie LinkedIn des relances sans réponse, en un geste.<br/>Extension Chrome open source — rien ne quitte ton navigateur.</p>
 
-<p align="center"><img src="store/screenshot-1-jamais-repondu.png" width="720" alt="Vue « Jamais répondu » dans la messagerie LinkedIn" /></p>
+<p align="center"><img src="store/screenshot-1-jamais-repondu.jpg" width="720" alt="Vue « Jamais répondu » dans la messagerie LinkedIn" /></p>
 
 ---
 
@@ -31,7 +31,7 @@ Aucun serveur, aucune télémétrie : tout est stocké localement (`chrome.stora
 
 ## Installation
 
-**Chrome Web Store** : bientôt.
+**Chrome Web Store** : [UnLink sur le Chrome Web Store](https://chromewebstore.google.com/detail/obkdmhneoandnpfcbcfjioepjbpcleag) (en cours d’examen par Google).
 
 **Depuis le code source** :
 1. Clone ce dépôt.
