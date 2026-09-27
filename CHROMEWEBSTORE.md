@@ -44,4 +44,12 @@ UnLink a un seul objectif : aider l’utilisateur à nettoyer sa messagerie Link
 ## Visuels
 
 - Icône : `icons/icon128.png`
-- Captures d’écran (1280 × 800) et tuile promotionnelle (440 × 280) : `store/` (générées par `node tools/store-assets.js`)
+- Captures d’écran 1280 × 800 : `store/screenshot-1…4-*.png`
+- Petite tuile promotionnelle 440 × 280 : `store/promo-440x280.png`
+- Bannière 1400 × 560 : `store/marquee-1400x560.png`
+- Tout est régénéré par `node tools/store-assets.js`
+
+## Publication automatique (CI)
+
+Après la première publication manuelle, configurer dans GitHub → Settings → Secrets les valeurs de l’API du Chrome Web Store :
+`CWS_EXTENSION_ID`, `CWS_CLIENT_ID`, `CWS_CLIENT_SECRET`, `CWS_REFRESH_TOKEN`. Ensuite, `./tools/release.sh X.Y.Z` suffit.

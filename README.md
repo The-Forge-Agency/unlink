@@ -4,13 +4,15 @@
 
 <p align="center">Nettoie ta messagerie LinkedIn des relances sans réponse, en un geste.<br/>Extension Chrome open source — rien ne quitte ton navigateur.</p>
 
+<p align="center"><img src="store/screenshot-1-jamais-repondu.png" width="720" alt="Vue « Jamais répondu » dans la messagerie LinkedIn" /></p>
+
 ---
 
 Ta messagerie LinkedIn déborde de messages de prospection qui insistent alors que tu n’as jamais répondu ? UnLink les repère, puis retire la relation et supprime la conversation en un clic ou un raccourci.
 
 ## Fonctionnalités
 
-- **Filtre ⚡ Relances** dans la messagerie : seules restent les conversations où la personne t’a écrit sans que tu aies **jamais** répondu (règles réglables : nombre de messages, ancienneté). Chargement par lots de 100 conversations.
+- **Vue ⚡ Jamais répondu** dans la messagerie : seules restent les conversations où la personne t’a écrit sans que tu aies **jamais** répondu (règles réglables : nombre de messages, ancienneté). Rien n’est chargé sans ton clic.
 - **Nettoyage en un geste** sur une conversation : bouton ⚡ UnLink ou raccourci `⌥⇧U` / `Alt+Shift+U` → retrait de la relation, puis suppression de la conversation. Délai d’annulation réglable (`Esc`).
 - **Nettoyage en masse**, en tâche de fond : liste de toutes les conversations éligibles (photo, titre, lien du profil), traitement par petits lots (7 par défaut) espacés dans le temps. Les personnes décochées sont exclues définitivement.
 - **Liste d’exclusion** gérable dans les réglages.
@@ -34,7 +36,7 @@ Aucun serveur, aucune télémétrie : tout est stocké localement (`chrome.stora
 **Depuis le code source** :
 1. Clone ce dépôt.
 2. `chrome://extensions` → active le **Mode développeur** → **Charger l’extension non empaquetée** → choisis le dossier du dépôt.
-3. Ouvre ta messagerie LinkedIn et active **⚡ Relances**.
+3. Ouvre ta messagerie LinkedIn et choisis la vue **⚡ Jamais répondu**.
 
 ## Développement
 
@@ -51,7 +53,10 @@ tools/
   test-logic.js          tests unitaires des règles et du parsing  →  node tools/test-logic.js
   e2e/                   test de bout en bout sur un faux LinkedIn local  →  node tools/e2e/run.js (nécessite puppeteer)
   make-icons.js          génère icons/ depuis assets/
+  store-assets.js        génère les visuels du Chrome Web Store dans store/
   build.sh               paquet pour le Chrome Web Store  →  dist/unlink-<version>.zip
+  release.sh             publie une version : ./tools/release.sh 1.0.1 (tag → GitHub Release → Chrome Web Store)
+.github/workflows/       CI (tests à chaque push) et publication sur tag
 ```
 
 Si LinkedIn change son interface, les libellés et sélecteurs sont centralisés dans `src/shared/labels.js`.

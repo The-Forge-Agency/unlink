@@ -78,3 +78,4 @@ a.chip-info:hover { color: var(--text); border-color: var(--accent); }
 .empty-title { font-size: 15px; font-weight: 700; margin: 0; }
 .empty p { margin: 0; max-width: 520px; }
 .empty .btn { margin-top: 10px; }
+.person > a { text-decoration: none; color: inherit; }
