@@ -176,16 +176,31 @@ async function until(fn, timeout = 15000, label = 'condition') {
     assert.deepEqual([flags[3].name, flags[3].flag, flags[4].name, flags[4].flag], ['Dip Patel', false, 'Dip Patel', true], 'homonymes départagés par l’ordre de la liste');
     console.log('✓ surbrillance correcte');
 
-    // Filtre « Relances » : masque les non-éligibles et charge la suite de la liste tout seul
+    // Vue « Jamais répondu » : panneau de l'extension, liste de LinkedIn intacte, aucun chargement sans clic
+    const rowsBefore = await page.$$eval('li.msg-conversation-listitem', (l) => l.length);
     await page.click('.unlink-filter-chip');
     const filtered = await until(async () => {
-      const r = await page.$$eval('li.msg-conversation-listitem', (lis) => lis.filter((li) => getComputedStyle(li).display !== 'none').map((li) => li.querySelector('h3').textContent));
-      return r.includes('Sophie Leroy') && !r.includes('Marie Curie') ? r : null;
-    }, 15000, 'Sophie chargée et affichée par le filtre, Marie masquée');
+      const r = await page.$$eval('.unlink-prow b', (els) => els.map((e) => e.textContent));
+      return r.includes('Sophie Leroy') ? r : null;
+    }, 20000, 'panneau « Jamais répondu » complet');
     assert.deepEqual(filtered, ['Jean Dupont', 'Dip Patel', 'Sophie Leroy']);
-    const chip = await page.$eval('.unlink-filter-chip b', (b) => b.textContent);
-    assert.equal(chip, '3');
-    console.log('✓ filtre « Relances » : seules Jean et Sophie (chargée automatiquement) sont affichées');
+    assert.equal(await page.$eval('.unlink-filter-chip b', (b) => b.textContent), '3');
+    await sleep(3000);
+    assert.equal(await page.$$eval('li.msg-conversation-listitem', (l) => l.length), rowsBefore, 'aucun chargement automatique');
+    console.log('✓ vue « Jamais répondu » : Jean, Dip Patel et Sophie (conversation non chargée) ; aucun chargement sans clic');
+    await page.click('.unlink-filter-more');
+    await until(() => page.$$eval('li.msg-conversation-listitem', (l) => l.length).then((n) => n > rowsBefore), 10000, 'chargement après clic');
+    console.log('✓ « Charger 100 de plus » charge la suite, uniquement sur clic');
+    await shot(page, '8-filtre-actif');
+    // Colonne étroite (300 px) + couleur verte : rien ne doit déborder
+    await page.evaluate(() => { document.querySelector('.msg-conversations-container').style.width = '300px'; document.documentElement.style.setProperty('--unlink-color', '#10b981'); });
+    await sleep(300);
+    const overflow = await page.evaluate(() => [...document.querySelectorAll('.unlink-filter-bar button')].filter((b) => b.scrollWidth > b.clientWidth + 1 && !b.hidden).map((b) => b.className));
+    await shot(page, '9-filtre-etroit');
+    console.log('débordements :', JSON.stringify(overflow));
+    assert.deepEqual(overflow, [], 'aucun bouton ne déborde');
+    await page.evaluate(() => { document.querySelector('.msg-conversations-container').style.width = '360px'; document.documentElement.style.removeProperty('--unlink-color'); });
+    console.log('✓ barre lisible en colonne étroite (300 px)');
     await page.click('.unlink-filter-chip');
     await sleep(400);
     await shot(page, '1-surbrillance');

@@ -213,9 +213,9 @@
   });
   $('#search').addEventListener('input', render);
   $('#refresh').addEventListener('click', load);
-  // Ouvre la messagerie avec le filtre ⚡ Relances activé : l'analyse démarre toute seule.
+  // Ouvre la messagerie sur la vue « Jamais répondu » (pour cette ouverture seulement) : l'analyse démarre toute seule.
   $('#empty-action').addEventListener('click', async () => {
-    await chrome.storage.local.set({ filterOn: true });
+    await chrome.storage.local.set({ filterOnce: Date.now() }); // active « Jamais répondu » pour cette ouverture seulement
     const [tab] = await chrome.tabs.query({ url: 'https://www.linkedin.com/messaging/*' });
     if (tab) {
       await chrome.tabs.update(tab.id, { active: true });

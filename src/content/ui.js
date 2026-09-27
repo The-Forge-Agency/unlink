@@ -183,29 +183,55 @@
       opacity: 0; transform: scale(.85); transition: opacity .12s, transform .12s; }
     .unlink-quick svg { width: 13px; height: 13px; fill: var(--unlink-color, #f59e0b); }
     [data-unlink-item]:hover > .unlink-quick, .unlink-quick:focus-visible { opacity: 1; transform: none; }
-    [data-unlink-filter] > li[data-unlink-known]:not([data-unlink-flag]) { display: none !important; }
-    /* Filtre actif : le repère « bas de liste » de LinkedIn est masqué, sinon la liste filtrée (courte) le laisse
-       visible en permanence et LinkedIn charge toute la boîte. Les lots sont chargés par l'extension. */
-    [data-unlink-filter] > li:not(.msg-conversation-listitem):not(.msg-conversations-container__convo-item) { display: none !important; }
-    .unlink-filter-more { all: unset; cursor: pointer; margin-left: auto; font-size: 12px; font-weight: 600; padding: 3px 9px;
-      border-radius: 999px; border: 1px solid rgba(128,128,128,.45); }
-    .unlink-filter-more:hover { border-color: var(--unlink-color, #f59e0b); }
-    .unlink-filter-more[hidden] { display: none; }
-    .unlink-filter-bulk { all: unset; cursor: pointer; font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px;
-      background: var(--unlink-color, #f59e0b); color: #1b1204; }
-    .unlink-filter-more:not([hidden]) + .unlink-filter-bulk { margin-left: 0; }
-    .unlink-filter-hint + .unlink-filter-more[hidden] + .unlink-filter-bulk { margin-left: auto; }
-    .unlink-filter-bar { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 1px solid rgba(128,128,128,.2);
+    /* Vue « Jamais répondu » : la liste de LinkedIn reste intacte (même hauteur, donc aucun chargement automatique),
+       simplement cachée derrière le panneau de l'extension. */
+    [data-unlink-filter] { visibility: hidden !important; }
+    .unlink-panel { position: absolute; left: 0; right: 0; bottom: 0; z-index: 5; overflow-y: auto; background: var(--unlink-panel-bg, #fff);
+      font: 14px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .unlink-prow { display: grid; grid-template-columns: 44px 1fr auto; gap: 10px; align-items: start; padding: 11px 12px;
+      border-bottom: 1px solid rgba(128,128,128,.18); cursor: pointer; }
+    .unlink-prow:hover { background: rgba(128,128,128,.08); }
+    .unlink-prow[aria-current="true"] { box-shadow: inset 3px 0 0 var(--unlink-color, #f59e0b); background: rgba(128,128,128,.1); }
+    .unlink-prow-av { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; display: grid; place-items: center;
+      background: rgba(128,128,128,.2); font-weight: 700; font-size: 13px; }
+    .unlink-prow-body { min-width: 0; }
+    .unlink-prow-head { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+    .unlink-prow-head b { font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .unlink-prow-meta { flex: none; font-size: 12px; font-weight: 600; color: #1b1204; background: var(--unlink-color, #f59e0b);
+      padding: 1px 7px; border-radius: 999px; }
+    .unlink-prow-text { margin: 3px 0 0; font-size: 13px; opacity: .75; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .unlink-prow-run { all: unset; cursor: pointer; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center;
+      border: 1px solid var(--unlink-color, #f59e0b); align-self: center; }
+    .unlink-prow-run svg { width: 13px; height: 13px; fill: var(--unlink-color, #f59e0b); }
+    .unlink-prow-run:hover { background: var(--unlink-color, #f59e0b); }
+    .unlink-prow-run:hover svg { fill: #1b1204; }
+    .unlink-prow-run:focus-visible { outline: 2px solid var(--unlink-color, #f59e0b); outline-offset: 2px; }
+    .unlink-panel-empty { margin: 0; padding: 20px 16px; font-size: 13px; line-height: 1.5; opacity: .75; }
+    .unlink-filter-bar { display: grid; gap: 8px; padding: 8px 12px 10px; border-bottom: 1px solid rgba(128,128,128,.22);
       font: 13px/18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    .unlink-filter-chip { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px 4px 9px; border-radius: 999px;
-      border: 1px solid rgba(128,128,128,.45); font-weight: 600; color: inherit; }
-    .unlink-filter-chip svg { width: 12px; height: 12px; fill: var(--unlink-color, #f59e0b); }
-    .unlink-filter-chip b { min-width: 18px; padding: 0 5px; border-radius: 999px; text-align: center; font-size: 11.5px; background: rgba(128,128,128,.18); }
-    .unlink-filter-chip:hover { border-color: var(--unlink-color, #f59e0b); }
-    .unlink-filter-chip[aria-pressed="true"] { background: var(--unlink-color, #f59e0b); border-color: var(--unlink-color, #f59e0b); color: #1b1204; }
+    /* Sélecteur : « Toutes » à sa taille, « Jamais répondu » prend le reste ; rien ne peut déborder. */
+    .unlink-seg { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px; padding: 3px; border-radius: 10px; background: rgba(128,128,128,.14); }
+    .unlink-seg button { all: unset; box-sizing: border-box; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+      min-width: 0; overflow: hidden; padding: 5px 12px; border-radius: 8px; font-weight: 600; white-space: nowrap; color: inherit; opacity: .72; }
+    .unlink-seg button > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+    .unlink-seg button:hover { opacity: 1; }
+    .unlink-seg button[aria-pressed="true"] { opacity: 1; background: var(--unlink-bar-bg, #fff); box-shadow: 0 1px 2px rgba(0,0,0,.16); }
+    .unlink-seg .unlink-filter-chip[aria-pressed="true"] { background: var(--unlink-color, #f59e0b); color: #1b1204; }
+    .unlink-seg svg { width: 12px; height: 12px; flex: none; fill: var(--unlink-color, #f59e0b); }
     .unlink-filter-chip[aria-pressed="true"] svg { fill: #1b1204; }
+    .unlink-filter-chip b { flex: none; min-width: 18px; padding: 0 5px; border-radius: 999px; text-align: center; font-size: 11.5px; background: rgba(128,128,128,.2); }
     .unlink-filter-chip[aria-pressed="true"] b { background: rgba(0,0,0,.14); }
-    .unlink-filter-hint { font-size: 12px; opacity: .7; }
+    .unlink-seg button:focus-visible, .unlink-filter-row button:focus-visible { outline: 2px solid var(--unlink-color, #f59e0b); outline-offset: 1px; }
+    /* Actions : deux vrais boutons de même largeur */
+    .unlink-filter-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .unlink-filter-row[hidden] { display: none; }
+    .unlink-filter-row button { all: unset; box-sizing: border-box; cursor: pointer; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      padding: 6px 10px; border-radius: 8px; font-size: 12.5px; font-weight: 600; border: 1px solid rgba(128,128,128,.4); color: inherit; }
+    .unlink-filter-row button:hover:not(:disabled) { border-color: var(--unlink-color, #f59e0b); }
+    .unlink-filter-row button:disabled { opacity: .45; cursor: default; }
+    .unlink-filter-row .unlink-filter-bulk { background: var(--unlink-color, #f59e0b); border-color: var(--unlink-color, #f59e0b); color: #1b1204; }
+    .unlink-filter-row .unlink-filter-bulk:hover { filter: brightness(1.05); }
+    .unlink-panel-status { margin: 0; padding: 8px 12px; font-size: 12px; opacity: .7; border-bottom: 1px solid rgba(128,128,128,.18); }
     .unlink-thread-btn { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; margin: 0 6px; padding: 5px 11px;
       border-radius: 999px; border: 1px solid var(--unlink-color, #f59e0b); color: inherit;
       font: 600 13px/18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; white-space: nowrap; }

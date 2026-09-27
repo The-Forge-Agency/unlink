@@ -38,10 +38,20 @@
     }
   }
 
-  storageGet('filterOn').then((d) => {
-    filterOn = !!d.filterOn;
+  // La messagerie s'ouvre toujours sur « Toutes ». Seule exception : l'ouverture demandée depuis la page d'accueil ou
+  // la page de masse (« filterOnce »), valable une seule fois.
+  function applyFilterOnce(at) {
+    if (!at || Date.now() - at > 60e3 || !isMessaging()) return;
+    storageSet({ filterOnce: 0 });
+    filterOn = true;
     schedule();
-  });
+  }
+  storageGet('filterOnce').then((d) => applyFilterOnce(d.filterOnce));
+  try {
+    chrome.storage.onChanged.addListener((c, area) => area === 'local' && c.filterOnce?.newValue && applyFilterOnce(c.filterOnce.newValue));
+  } catch {
+    /* extension rechargée */
+  }
 
   const isMessaging = () => location.pathname.startsWith('/messaging');
 
@@ -435,18 +445,37 @@
     return isLast || L.loadMore.test(dom.textOf(btn)) ? btn : null;
   }
 
-  // Barre « ⚡ Relances » au-dessus de la liste. Filtre actif : les conversations identifiées comme non éligibles
-  // sont masquées (celles que LinkedIn n'a pas encore affichées restent visibles le temps d'être analysées),
-  // et la suite de la liste est chargée automatiquement pour trouver les relances plus anciennes.
+  // Barre au-dessus de la liste : sélecteur « Toutes | ⚡ Jamais répondu N » (on voit toujours quelle vue est active).
+  // La vue « Jamais répondu » est un PANNEAU de l'extension posé sur la liste de LinkedIn : la liste de LinkedIn n'est
+  // pas modifiée (juste cachée derrière, à hauteur constante), donc LinkedIn ne charge rien tout seul. Le panneau montre
+  // toutes les conversations éligibles connues, lisibles (dernier message sur deux lignes, rien par-dessus).
+  // Rien n'est chargé sans clic : « Charger 100 de plus » clique le bouton de LinkedIn, par lot.
   function injectFilterBar() {
     const ul = document.querySelector(SEL.list);
     if (!ul) return;
-    let bar = ul.parentElement.querySelector(':scope > .unlink-filter-bar');
+    const host = ul.parentElement;
+    let bar = host.querySelector(':scope > .unlink-filter-bar');
     if (!bar) {
       bar = document.createElement('div');
       bar.className = 'unlink-filter-bar';
-      bar.innerHTML = `<button type="button" class="unlink-filter-chip" aria-pressed="false">${ui.BOLT}<span>Relances</span><b></b></button><span class="unlink-filter-hint"></span><button type="button" class="unlink-filter-more" hidden>+ 100 conversations</button><button type="button" class="unlink-filter-bulk" title="Nettoyer plusieurs relances d’un coup">Tout nettoyer…</button>`;
+      bar.innerHTML = `
+        <div class="unlink-seg" role="group" aria-label="Vue de la messagerie">
+          <button type="button" class="unlink-seg-all" aria-pressed="true">Toutes</button>
+          <button type="button" class="unlink-filter-chip" aria-pressed="false" title="Conversations où la personne t’écrit alors que tu n’as jamais répondu">${ui.BOLT}<span>Jamais répondu</span><b></b></button>
+        </div>
+        <div class="unlink-filter-row" hidden>
+          <button type="button" class="unlink-filter-more" title="Charger 100 conversations plus anciennes pour les analyser">Charger plus</button>
+          <button type="button" class="unlink-filter-bulk" title="Nettoyer plusieurs conversations d’un coup">Tout nettoyer</button>
+        </div>`;
       stopAll(bar);
+      const setFilter = (on) => {
+        if (filterOn === on) return;
+        filterOn = on;
+        batchPagesLeft = 0;
+        schedule();
+      };
+      bar.querySelector('.unlink-seg-all').addEventListener('click', () => setFilter(false));
+      bar.querySelector('.unlink-filter-chip').addEventListener('click', () => setFilter(!filterOn));
       bar.querySelector('.unlink-filter-bulk').addEventListener('click', () => {
         try {
           chrome.runtime.sendMessage({ type: 'UNLINK_OPEN_BULK' }).catch(() => {});
@@ -458,40 +487,157 @@
         batchPagesLeft = PAGES_PER_BATCH;
         schedule();
       });
-      bar.querySelector('button').addEventListener('click', () => {
-        filterOn = !filterOn;
-        batchPagesLeft = filterOn ? PAGES_PER_BATCH : 0;
-        storageSet({ filterOn });
-        if (!filterOn) ul.scrollTop = 0;
-        schedule();
-      });
-      ul.parentElement.insertBefore(bar, ul);
+      host.insertBefore(bar, ul);
     }
-    // Compteur : toutes les relances confirmées (y compris les lignes que LinkedIn a vidées hors écran).
-    const flaggedRows = listItems().filter((li) => li.hasAttribute('data-unlink-flag')).length;
-    const flagged = Math.max(flaggedRows, stats.flaggedList(store.all(), store.meId(), settings.highlight, Date.now(), UL.exclusions.set()).length);
-    const chip = bar.querySelector('button');
+
+    const list = stats
+      .flaggedList(store.all(), store.meId(), settings.highlight, Date.now(), UL.exclusions.set())
+      .sort((a, b) => (b.thread.lastActivityAt || 0) - (a.thread.lastActivityAt || 0));
+    const chip = bar.querySelector('.unlink-filter-chip');
+    const all = bar.querySelector('.unlink-seg-all');
     if (chip.getAttribute('aria-pressed') !== String(filterOn)) chip.setAttribute('aria-pressed', String(filterOn));
-    const count = String(flagged);
+    if (all.getAttribute('aria-pressed') !== String(!filterOn)) all.setAttribute('aria-pressed', String(!filterOn));
+    const count = String(list.length);
     if (chip.querySelector('b').textContent !== count) chip.querySelector('b').textContent = count;
     if (filterOn !== ul.hasAttribute('data-unlink-filter')) ul.toggleAttribute('data-unlink-filter', filterOn);
 
+    // Chargement par lot, uniquement après un clic sur « Charger 100 de plus »
     const loadMore = findLoadMore(ul);
-    let hint = '';
-    if (filterOn) {
-      if (loadMore && batchPagesLeft > 0 && Date.now() - lastAutoLoad > 1500) {
-        batchPagesLeft--;
-        lastAutoLoad = Date.now();
-        loadMore.click(); // fonctionne même si le bouton est masqué par le filtre
-      }
-      if (loadMore && batchPagesLeft > 0) hint = 'Chargement d’un lot de conversations…';
-      else if (!flagged) hint = 'Aucune relance';
+    if (filterOn && loadMore && batchPagesLeft > 0 && Date.now() - lastAutoLoad > 1500) {
+      batchPagesLeft--;
+      lastAutoLoad = Date.now();
+      loadMore.click();
     }
-    const h = bar.querySelector('.unlink-filter-hint');
-    if (h.textContent !== hint) h.textContent = hint;
+    if (!loadMore) batchPagesLeft = 0;
+
+    const row = bar.querySelector('.unlink-filter-row');
+    if (row.hidden === filterOn) row.hidden = !filterOn;
+    const known = Object.keys(store.all()).length;
     const more = bar.querySelector('.unlink-filter-more');
-    const showMore = filterOn && !!loadMore && batchPagesLeft === 0;
-    if (more.hidden === showMore) more.hidden = !showMore;
+    const moreLabel = batchPagesLeft > 0 ? 'Chargement…' : 'Charger plus';
+    if (more.textContent !== moreLabel) more.textContent = moreLabel;
+    const canLoad = !!loadMore && batchPagesLeft === 0;
+    if (more.disabled === canLoad) more.disabled = !canLoad;
+
+    const status = list.length
+      ? `${list.length} conversation${list.length > 1 ? 's' : ''} sans réponse de ta part · ${known} analysées`
+      : `${known} conversations analysées`;
+    renderPanel(host, ul, list, status, !!loadMore);
+  }
+
+  // ---------- panneau « Jamais répondu » ----------
+
+  function initials(name) {
+    return (name || '?').split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
+  }
+
+  function renderPanel(host, ul, list, status, canLoadMore) {
+    let panel = host.querySelector(':scope > .unlink-panel');
+    if (!filterOn) {
+      panel?.remove();
+      return;
+    }
+    if (!panel) {
+      panel = document.createElement('div');
+      panel.className = 'unlink-panel';
+      panel.setAttribute('role', 'list');
+      stopAll(panel);
+      panel.addEventListener('click', (e) => {
+        const rowEl = e.target.closest('.unlink-prow');
+        if (!rowEl) return;
+        const id = rowEl.dataset.thread;
+        if (e.target.closest('.unlink-prow-run')) runFromThread(id);
+        else openThread(id).catch((err) => ui.notify(err?.message || String(err), 'warn'));
+      });
+      host.style.position = host.style.position || 'relative';
+      // Même fond que la liste de LinkedIn (thème clair ou sombre)
+      let el = ul;
+      let bg = '';
+      while (el && (!bg || bg === 'rgba(0, 0, 0, 0)' || bg === 'transparent')) {
+        bg = getComputedStyle(el).backgroundColor;
+        el = el.parentElement;
+      }
+      panel.style.setProperty('--unlink-panel-bg', bg && bg !== 'rgba(0, 0, 0, 0)' ? bg : getComputedStyle(document.body).backgroundColor || '#fff');
+      host.appendChild(panel);
+    }
+    // Recouvre exactement la zone de la liste de LinkedIn (sous la barre).
+    const top = ul.offsetTop;
+    if (panel.style.top !== `${top}px`) panel.style.top = `${top}px`;
+
+    const me = store.meId();
+    const cur = currentThreadId();
+    const sig = JSON.stringify([cur, status, canLoadMore, list.map((f) => [f.thread.id, f.count, Math.round((f.ageMs || 0) / 36e5), f.thread.lastText])]);
+    if (panel.dataset.sig === sig) return;
+    panel.dataset.sig = sig;
+    panel.textContent = '';
+    const st = document.createElement('p');
+    st.className = 'unlink-panel-status';
+    st.textContent = status;
+    panel.appendChild(st);
+    if (!list.length) {
+      const empty = document.createElement('p');
+      empty.className = 'unlink-panel-empty';
+      empty.textContent = canLoadMore
+        ? 'Aucune conversation sans réponse pour l’instant. L’analyse continue en arrière-plan. Pour aller plus loin, charge des conversations plus anciennes.'
+        : 'Aucune conversation sans réponse pour l’instant. L’analyse continue en arrière-plan.';
+      panel.appendChild(empty);
+      return;
+    }
+    for (const f of list) {
+      const other = stats.otherParticipant(f.thread, me);
+      const name = stats.displayName(f.thread, me);
+      const row = document.createElement('div');
+      row.className = 'unlink-prow';
+      row.setAttribute('role', 'listitem');
+      row.dataset.thread = f.thread.id;
+      if (f.thread.id === cur) row.setAttribute('aria-current', 'true');
+      const av = other?.photo ? document.createElement('img') : document.createElement('span');
+      av.className = 'unlink-prow-av';
+      if (other?.photo) {
+        av.src = other.photo;
+        av.alt = '';
+        av.referrerPolicy = 'no-referrer';
+      } else av.textContent = initials(name);
+      const body = document.createElement('div');
+      body.className = 'unlink-prow-body';
+      const head = document.createElement('div');
+      head.className = 'unlink-prow-head';
+      const n = document.createElement('b');
+      n.textContent = name;
+      const meta = document.createElement('span');
+      meta.className = 'unlink-prow-meta';
+      meta.textContent = `${f.count} msg${f.ageMs ? ` · ${stats.formatAge(f.ageMs)}` : ''}`;
+      head.append(n, meta);
+      const text = document.createElement('p');
+      text.className = 'unlink-prow-text';
+      text.textContent = f.thread.lastText || '';
+      body.append(head, text);
+      const run = document.createElement('button');
+      run.type = 'button';
+      run.className = 'unlink-prow-run';
+      run.title = 'UnLink : nettoyer cette conversation';
+      run.setAttribute('aria-label', `Nettoyer la conversation avec ${name}`);
+      run.innerHTML = ui.BOLT;
+      row.append(av, body, run);
+      panel.appendChild(row);
+    }
+  }
+
+  // Ouvre une conversation depuis le panneau : par sa ligne dans la liste de LinkedIn si elle est chargée (vérifiée),
+  // sinon par son adresse.
+  async function openThread(threadId) {
+    if (currentThreadId() === threadId) return;
+    const li = listItems().find((x) => itemThreadId(x) === threadId);
+    if (li) return openListItem(li, itemName(li), threadId);
+    location.assign(`/messaging/thread/${encodeURIComponent(threadId)}/`);
+  }
+
+  function runFromThread(threadId) {
+    const li = listItems().find((x) => itemThreadId(x) === threadId);
+    if (li) return runFromItem(li);
+    if (currentThreadId() === threadId) return runCurrent();
+    ui.notify('Ouverture de la conversation… clique ensuite sur ⚡ UnLink.', 'info', 4000);
+    location.assign(`/messaging/thread/${encodeURIComponent(threadId)}/`);
   }
 
   function refresh() {
@@ -516,7 +662,7 @@
     }, 250);
   }
 
-  const OWN = '.unlink-badge, .unlink-quick, .unlink-thread-btn, .unlink-filter-bar, unlink-root';
+  const OWN = '.unlink-badge, .unlink-quick, .unlink-thread-btn, .unlink-filter-bar, .unlink-panel, unlink-root';
   function isOwnMutation(m) {
     const t = m.target.nodeType === 1 ? m.target : m.target.parentElement;
     if (t?.closest?.(OWN)) return true;
@@ -806,7 +952,7 @@
   function teardown() {
     clearInterval(routeTimer);
     stopObserver();
-    document.querySelectorAll('.unlink-badge, .unlink-quick, .unlink-thread-btn, .unlink-filter-bar').forEach((el) => el.remove());
+    document.querySelectorAll('.unlink-badge, .unlink-quick, .unlink-thread-btn, .unlink-filter-bar, .unlink-panel').forEach((el) => el.remove());
     document.querySelectorAll('[data-unlink-flag]').forEach((el) => el.removeAttribute('data-unlink-flag'));
     document.querySelector('[data-unlink-filter]')?.removeAttribute('data-unlink-filter');
   }

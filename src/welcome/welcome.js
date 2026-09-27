@@ -16,9 +16,9 @@
     else kbd.replaceWith(document.createTextNode('le raccourci (à définir dans chrome://extensions/shortcuts)'));
   });
 
-  // Ouvre la messagerie avec le filtre « Relances » déjà activé : l'analyse démarre toute seule.
+  // Ouvre la messagerie sur la vue « Jamais répondu » (pour cette ouverture seulement) : l'analyse démarre toute seule.
   document.getElementById('open-inbox').addEventListener('click', async () => {
-    await chrome.storage.local.set({ filterOn: true });
+    await chrome.storage.local.set({ filterOnce: Date.now() }); // active « Jamais répondu » pour cette ouverture seulement
     const [tab] = await chrome.tabs.query({ url: 'https://www.linkedin.com/messaging/*' });
     if (tab) {
       await chrome.tabs.update(tab.id, { active: true });
