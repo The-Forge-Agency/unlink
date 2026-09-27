@@ -1,0 +1,45 @@
+name: Release
+
+# Déclenché par un tag vX.Y.Z (voir tools/release.sh) : tests, paquet, GitHub Release,
+# puis envoi au Chrome Web Store si les secrets de l'API du Store sont configurés.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm install --no-audit --no-fund
+      - name: Le tag correspond à la version du manifeste
+        run: |
+          V=$(node -p "require('./manifest.json').version")
+          if [ "v$V" != "${GITHUB_REF_NAME}" ]; then echo "Tag ${GITHUB_REF_NAME} ≠ version v$V du manifeste"; exit 1; fi
+      - run: npm run check
+      - run: npm test
+      - run: xvfb-run --auto-servernum npm run e2e
+      - run: npm run build
+      - name: GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${GITHUB_REF_NAME}" dist/*.zip --title "UnLink ${GITHUB_REF_NAME}" --generate-notes
+      - name: Envoi au Chrome Web Store
+        env:
+          EXTENSION_ID: ${{ secrets.CWS_EXTENSION_ID }}
+          CLIENT_ID: ${{ secrets.CWS_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CWS_CLIENT_SECRET }}
+          REFRESH_TOKEN: ${{ secrets.CWS_REFRESH_TOKEN }}
+        run: |
+          if [ -z "$EXTENSION_ID" ] || [ -z "$REFRESH_TOKEN" ]; then
+            echo "Secrets du Chrome Web Store absents : envoi ignoré (publier le zip à la main)."
+            exit 0
+          fi
+          npx --yes chrome-webstore-upload-cli@3 upload --source dist/*.zip --auto-publish

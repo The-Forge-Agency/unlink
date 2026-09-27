@@ -1,0 +1,17 @@
+{
+  "name": "unlink",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Extension Chrome : nettoie ta messagerie LinkedIn des relances sans réponse.",
+  "license": "MIT",
+  "scripts": {
+    "test": "node tools/test-logic.js",
+    "e2e": "node tools/e2e/run.js",
+    "check": "node tools/check.js",
+    "build": "./tools/build.sh",
+    "icons": "node tools/make-icons.js"
+  },
+  "devDependencies": {
+    "puppeteer": "^24.41.0"
+  }
+}

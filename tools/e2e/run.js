@@ -127,6 +127,7 @@ async function until(fn, timeout = 15000, label = 'condition') {
       `--host-resolver-rules=MAP www.linkedin.com 127.0.0.1:${PORT}`,
       '--ignore-certificate-errors',
       '--no-first-run',
+      ...(process.env.CI ? ['--no-sandbox'] : []), // machines GitHub Actions
     ],
   });
   let failed = false;
