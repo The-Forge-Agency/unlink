@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Réglages UnLink</title>
+  <link rel="stylesheet" href="../ui/page.css" />
+  <link rel="stylesheet" href="options.css" />
+</head>
+<body>
+  <main class="wrap">
+    <header class="hero">
+      <img class="logo big" src="/icons/icon128.png" alt="" />
+      <div>
+        <h1>UnLink</h1>
+        <p class="muted">Nettoie une conversation LinkedIn indésirable en un raccourci, et repère les relances sans réponse.</p>
+      </div>
+      <span class="saved" id="saved" aria-live="polite"></span>
+    </header>
+
+    <!-- Action en un clic -->
+    <section class="card">
+      <div class="card-head">
+        <h2>Action en un clic</h2>
+        <p class="muted">Ce que fait UnLink quand tu cliques sur <b>⚡ UnLink</b> ou utilises le raccourci depuis une conversation.</p>
+      </div>
+
+      <div class="steps">
+        <div class="step">
+          <span class="num">1</span>
+          <div class="grow">
+            <label class="line"><span><b>Ne plus suivre</b> la personne<br /><span class="muted small">Ses publications disparaissent de ton fil.</span></span><input type="checkbox" class="switch" data-key="unfollow" /></label>
+            <label class="line"><span><b>Retirer la relation</b><br /><span class="muted small">La personne n’est pas notifiée. Ignoré si vous n’êtes pas en relation.</span></span><input type="checkbox" class="switch" data-key="removeConnection" /></label>
+          </div>
+        </div>
+        <div class="step">
+          <span class="num">2</span>
+          <div class="grow">
+            <div class="line">
+              <span><b>Puis, la conversation</b><br /><span class="muted small">Exécuté à la fin, une fois les actions sur le profil terminées.</span></span>
+              <div class="seg" role="radiogroup" aria-label="Action sur la conversation">
+                <label><input type="radio" name="conv" value="delete" data-key="conversationAction" /><span>Supprimer</span></label>
+                <label><input type="radio" name="conv" value="archive" data-key="conversationAction" /><span>Archiver</span></label>
+                <label><input type="radio" name="conv" value="none" data-key="conversationAction" /><span>Garder</span></label>
+              </div>
+            </div>
+            <label class="line"><span>Supprimer/archiver même si une action sur le profil échoue<br /><span class="muted small">Désactivé : la conversation est gardée pour que tu puisses réessayer.</span></span><input type="checkbox" class="switch" data-key="conversationEvenIfProfileFails" /></label>
+          </div>
+        </div>
+      </div>
+
+      <div class="line top-border">
+        <span><b>Délai d’annulation</b><br /><span class="muted small">Temps pendant lequel tu peux annuler (<kbd>Esc</kbd>) avant exécution. 0 = immédiat.</span></span>
+        <span class="range"><input type="range" min="0" max="10" step="1" data-key="countdownSeconds" id="countdown" /><output id="countdown-out"></output></span>
+      </div>
+    </section>
+
+    <!-- Surbrillance -->
+    <section class="card">
+      <div class="card-head row">
+        <div>
+          <h2>Relances sans réponse</h2>
+          <p class="muted">Surligne dans la messagerie les conversations où la personne insiste alors que tu n’as pas répondu.</p>
+        </div>
+        <input type="checkbox" class="switch" data-key="highlight.enabled" aria-label="Activer la surbrillance" />
+      </div>
+
+      <div data-enabled-by="highlight.enabled" class="rules">
+        <div class="rule">
+          <input type="checkbox" class="switch" data-key="highlight.byCount" aria-label="Règle nombre de messages" />
+          <div class="rule-body" data-enabled-by="highlight.enabled,highlight.byCount">
+            <b>Nombre de messages</b>
+            <p>À partir de <input type="number" min="1" max="50" data-key="highlight.minMessages" /> messages d’affilée sans réponse de ta part.</p>
+          </div>
+        </div>
+        <div class="rule">
+          <input type="checkbox" class="switch" data-key="highlight.byDelay" aria-label="Règle délai" />
+          <div class="rule-body" data-enabled-by="highlight.enabled,highlight.byDelay">
+            <b>Délai sans réponse</b>
+            <p>
+              Premier message sans réponse vieux de plus de
+              <input type="number" min="1" max="365" data-key="highlight.delayValue" />
+              <select data-key="highlight.delayUnit"><option value="hours">heures</option><option value="days">jours</option></select>,
+              avec au moins <input type="number" min="1" max="50" data-key="highlight.delayMinMessages" /> message(s).
+            </p>
+          </div>
+        </div>
+        <div class="line">
+          <span><b>Quand les deux règles sont actives</b></span>
+          <div class="seg" role="radiogroup" aria-label="Combinaison des règles">
+            <label><input type="radio" name="combine" value="any" data-key="highlight.combine" /><span>L’une ou l’autre</span></label>
+            <label><input type="radio" name="combine" value="all" data-key="highlight.combine" /><span>Les deux</span></label>
+          </div>
+        </div>
+        <div class="line">
+          <span><b>Couleur</b></span>
+          <div class="swatches" role="radiogroup" aria-label="Couleur de surbrillance">
+            <label style="--sw:#f59e0b"><input type="radio" name="color" value="#f59e0b" data-key="highlight.color" /><span></span></label>
+            <label style="--sw:#ef4444"><input type="radio" name="color" value="#ef4444" data-key="highlight.color" /><span></span></label>
+            <label style="--sw:#a855f7"><input type="radio" name="color" value="#a855f7" data-key="highlight.color" /><span></span></label>
+            <label style="--sw:#3b82f6"><input type="radio" name="color" value="#3b82f6" data-key="highlight.color" /><span></span></label>
+            <label style="--sw:#10b981"><input type="radio" name="color" value="#10b981" data-key="highlight.color" /><span></span></label>
+            <input type="color" data-key="highlight.color" aria-label="Couleur personnalisée" />
+          </div>
+        </div>
+        <div class="preview" id="preview">
+          <span class="pv-avatar"></span>
+          <span class="pv-text"><b>Jeanne Martin</b><span class="muted">Je me permets de revenir vers vous…</span></span>
+          <span class="pv-badge" id="pv-badge">3 sans réponse · 8 j</span>
+        </div>
+      </div>
+
+      <details class="how">
+        <summary>Comment UnLink décide qu’une conversation est une relance ?</summary>
+        <p class="muted small">
+          UnLink lit les données que LinkedIn charge pour afficher ta messagerie, et charge lui-même, discrètement (un onglet à la fois,
+          avec des pauses), l’historique des conversations dont le dernier message vient de l’autre personne. Tout reste dans ton navigateur.
+          Une conversation n’est proposée que si UnLink est <b>certain</b> que tu n’y as jamais écrit : historique complet relu,
+          plus récent que la dernière activité, aucun de tes messages dedans. Au moindre doute, elle n’est pas proposée.
+          La croix <b>×</b> sur un badge ignore la relance jusqu’au prochain message.
+        </p>
+      </details>
+    </section>
+
+    <!-- Raccourcis -->
+    <section class="card">
+      <div class="card-head">
+        <h2>Raccourcis clavier</h2>
+        <p class="muted">Actifs sur linkedin.com/messaging. Modifiables dans la page des raccourcis de Chrome.</p>
+      </div>
+      <ul class="shortcuts" id="shortcuts"></ul>
+      <button class="btn" id="edit-shortcuts">Modifier les raccourcis</button>
+    </section>
+
+    <!-- Avancé -->
+    <section class="card">
+      <div class="card-head"><h2>Avancé</h2></div>
+      <div class="line">
+        <span><b>Méthode</b><br /><span class="muted small">Requêtes directes : les mêmes que l’interface de LinkedIn, en une seconde. Les menus restent le secours si LinkedIn les refuse.</span></span>
+        <div class="seg" role="radiogroup" aria-label="Méthode d’exécution">
+          <label><input type="radio" name="method" value="api" data-key="method" /><span>Requêtes directes d’abord</span></label>
+          <label><input type="radio" name="method" value="ui" data-key="method" /><span>Menus uniquement</span></label>
+        </div>
+      </div>
+      <div class="line">
+        <span><b>Ouvrir le profil dans</b><br /><span class="muted small">Si le mode onglet échoue souvent, essaie la fenêtre.</span></span>
+        <div class="seg" role="radiogroup" aria-label="Mode d’ouverture du profil">
+          <label><input type="radio" name="tabmode" value="background" data-key="profileTabMode" /><span>Onglet en arrière-plan</span></label>
+          <label><input type="radio" name="tabmode" value="popup" data-key="profileTabMode" /><span>Petite fenêtre</span></label>
+        </div>
+      </div>
+      <label class="line"><span>Laisser l’onglet du profil ouvert en cas d’échec<br /><span class="muted small">Pour finir l’action à la main.</span></span><input type="checkbox" class="switch" data-key="keepTabOnFailure" /></label>
+      <label class="line"><span>Bouton <b>⚡ UnLink</b> dans l’en-tête de la conversation</span><input type="checkbox" class="switch" data-key="showThreadButton" /></label>
+      <label class="line"><span>Bouton ⚡ au survol des conversations de la liste</span><input type="checkbox" class="switch" data-key="showListButtons" /></label>
+    </section>
+
+    <!-- Nettoyage en masse -->
+    <section class="card" id="bulk">
+      <div class="card-head">
+        <h2>Nettoyage en masse</h2>
+        <p class="muted">Traite plusieurs relances d’un coup, en tâche de fond. Retirer beaucoup de relations en peu de temps peut attirer l’attention de LinkedIn : reste raisonnable.</p>
+      </div>
+      <label class="line"><span><b>Personnes par lancement</b><br /><span class="muted small">7 par défaut. Au-delà de 10, le risque de restriction augmente.</span></span>
+        <input type="number" min="1" max="20" data-key="bulkPerRun" /></label>
+      <div class="line"><span class="muted small">Plafond de sécurité : 50 personnes par jour, toutes sessions confondues.</span>
+        <button class="btn" id="open-bulk">Ouvrir le nettoyage en masse</button></div>
+    </section>
+
+    <!-- Exclusions -->
+    <section class="card">
+      <div class="card-head">
+        <h2>Personnes exclues</h2>
+        <p class="muted">Jamais proposées comme relances. On y ajoute quelqu’un en le décochant dans « Nettoyage en masse ».</p>
+      </div>
+      <ul class="excluded" id="excluded"></ul>
+      <p class="muted small" id="excluded-empty">Personne n’est exclu pour l’instant.</p>
+    </section>
+
+    <!-- Données -->
+    <section class="card">
+      <div class="card-head"><h2>Données locales</h2></div>
+      <p class="muted" id="data-summary"></p>
+      <div class="actions">
+        <button class="btn" id="clear-cache">Vider le cache des conversations</button>
+        <button class="btn danger" id="reset">Réinitialiser les réglages</button>
+      </div>
+    </section>
+
+    <p class="muted small disclaimer">
+      UnLink automatise des clics que tu ferais toi-même, uniquement quand tu le déclenches. LinkedIn encadre l’automatisation dans ses conditions d’utilisation : utilise-le avec modération.
+    </p>
+  </main>
+
+  <script src="../shared/settings.js"></script>
+  <script src="../shared/exclusions.js"></script>
+  <script src="../ui/bind.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

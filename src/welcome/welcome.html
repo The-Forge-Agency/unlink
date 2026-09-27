@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bienvenue dans UnLink</title>
+  <link rel="stylesheet" href="welcome.css" />
+</head>
+<body>
+  <header class="top">
+    <span class="brand"><img class="bolt" src="/icons/icon128.png" alt="" />UnLink</span>
+    <nav class="top-links" aria-label="Liens">
+      <a data-link="repo" target="_blank" rel="noopener">Code source</a>
+      <a data-link="coffee" target="_blank" rel="noopener">Offrir un café</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-text">
+        <h1>Merci. Ta messagerie LinkedIn va respirer.</h1>
+        <p class="lead">
+          UnLink repère les conversations où l’on te relance sans que tu aies jamais répondu, puis retire la relation
+          et supprime la conversation en un geste. Tout se passe dans ton navigateur.
+        </p>
+        <button class="cta" id="open-inbox">Ouvrir ma messagerie LinkedIn</button>
+      </div>
+
+      <!-- Le moment fort : une pile de relances typiques, balayée par l'éclair au chargement -->
+      <div class="inbox" aria-label="Exemple : quatre relances sans réponse retirées de la messagerie">
+        <div class="sweep" aria-hidden="true"></div>
+        <ul class="stack" aria-hidden="true">
+          <li style="--i: 0"><span class="av">CM</span><span class="msg"><b>Clara Moreau</b><span>Je me permets de revenir vers vous…</span></span><span class="badge">3 sans réponse</span></li>
+          <li style="--i: 1"><span class="av">JP</span><span class="msg"><b>James Porter</b><span>Quick follow-up on my last message</span></span><span class="badge">5 sans réponse</span></li>
+          <li style="--i: 2"><span class="av">NL</span><span class="msg"><b>Nadia Lefèvre</b><span>Petite relance 🙂 Avez-vous eu le temps…</span></span><span class="badge">2 sans réponse</span></li>
+          <li style="--i: 3"><span class="av">TK</span><span class="msg"><b>Tomás Kovač</b><span>Did you get a chance to look at it?</span></span><span class="badge">4 sans réponse</span></li>
+        </ul>
+        <p class="clean"><span class="check" aria-hidden="true">✓</span> 4 relances retirées de ta messagerie</p>
+      </div>
+    </section>
+
+    <section class="steps" aria-labelledby="start-title">
+      <h2 id="start-title">Pour commencer</h2>
+      <ol>
+        <li>
+          <h3>Ouvre ta messagerie LinkedIn</h3>
+          <p>UnLink analyse tes conversations en arrière-plan, discrètement, sans rien modifier.</p>
+        </li>
+        <li>
+          <h3>Active le filtre <span class="chip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.2 2 4.5 13.4h6.3L9.9 22l8.6-11.6h-6.2L13.2 2z"/></svg>Relances</span></h3>
+          <p>Il ne garde que les conversations où la personne insiste alors que tu n’as jamais répondu.</p>
+        </li>
+        <li>
+          <h3>Nettoie</h3>
+          <p>
+            Sur une conversation, clique <b>UnLink</b> ou appuie sur <kbd id="shortcut">⌥⇧U</kbd>.
+            Pour en traiter plusieurs, ouvre <b>Tout nettoyer…</b> : 7 personnes par lot, en tâche de fond.
+          </p>
+        </li>
+      </ol>
+    </section>
+
+    <section class="promises" aria-labelledby="promise-title">
+      <h2 id="promise-title">Ce qu’UnLink ne fera jamais</h2>
+      <ul>
+        <li><b>Te proposer une conversation où tu as déjà écrit.</b> L’historique complet est relu avant, et relu encore juste avant d’agir.</li>
+        <li><b>Agir sans vérifier.</b> Chaque retrait de relation et chaque suppression sont confirmés auprès de LinkedIn.</li>
+        <li><b>Envoyer tes données ailleurs.</b> Rien ne quitte ton navigateur : ni tes messages, ni tes contacts.</li>
+      </ul>
+      <p class="settings-hint">Tout se règle dans <a href="#" id="open-options">les réglages</a> : actions, délai d’annulation, règles de relance.</p>
+    </section>
+  </main>
+
+  <footer class="credits">
+    <div class="credits-text">
+      <p>
+        UnLink est un projet open source conçu par <a data-link="authorLinkedin" target="_blank" rel="noopener">Vassili Joffroy</a>,
+        fondateur de <a data-link="agencyUrl" target="_blank" rel="noopener">The Forge Agency</a>, qui crée des plateformes métier
+        et des automatisations sur mesure.
+      </p>
+      <p class="muted">Si UnLink te fait gagner du temps, un café fait toujours plaisir.</p>
+    </div>
+    <div class="credits-links">
+      <a class="link-btn primary" data-link="coffee" target="_blank" rel="noopener">Offrir un café</a>
+      <a class="link-btn" data-link="authorLinkedin" target="_blank" rel="noopener">Suivre Vassili sur LinkedIn</a>
+      <a class="link-btn" data-link="repo" target="_blank" rel="noopener">Voir le code source</a>
+      <a class="link-btn" data-link="agencyUrl" target="_blank" rel="noopener">The Forge Agency</a>
+    </div>
+  </footer>
+
+  <script src="../config.js"></script>
+  <script src="welcome.js"></script>
+</body>
+</html>

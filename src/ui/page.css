@@ -1,0 +1,93 @@
+:root {
+  --bg: #f6f6f3;
+  --surface: #ffffff;
+  --surface-2: #f0f0ec;
+  --border: #e3e3dd;
+  --text: #18181b;
+  --muted: #6b6b73;
+  --accent: #f59e0b;
+  --accent-ink: #1b1204;
+  --accent-soft: #fdf0d8;
+  --danger: #b91c1c;
+  --ok: #15803d;
+  --radius: 12px;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0e0e11;
+    --surface: #16161a;
+    --surface-2: #1e1e23;
+    --border: #2a2a31;
+    --text: #f4f4f5;
+    --muted: #9a9aa3;
+    --accent-soft: #2a200f;
+    --danger: #f87171;
+    --ok: #4ade80;
+  }
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font: 13.5px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3 { margin: 0; line-height: 1.2; }
+a { color: inherit; }
+button { font: inherit; color: inherit; }
+
+.logo { width: 28px; height: 28px; flex: none; display: block; }
+
+.muted { color: var(--muted); }
+.small { font-size: 12px; }
+
+kbd {
+  font: 600 11px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  background: var(--surface-2); border: 1px solid var(--border); border-bottom-width: 2px;
+  border-radius: 5px; padding: 3px 5px; white-space: nowrap;
+}
+
+/* Interrupteur */
+.switch {
+  appearance: none; -webkit-appearance: none; margin: 0; flex: none; cursor: pointer;
+  width: 34px; height: 20px; border-radius: 999px; background: var(--border); position: relative; transition: background .15s;
+}
+.switch::after {
+  content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%;
+  background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.25); transition: transform .15s;
+}
+.switch:checked { background: var(--accent); }
+.switch:checked::after { transform: translateX(14px); }
+.switch:focus-visible, .seg input:focus-visible + span, .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Contrôle segmenté */
+.seg { display: inline-flex; background: var(--surface-2); border: 1px solid var(--border); border-radius: 9px; padding: 2px; }
+.seg label { position: relative; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg span { display: block; padding: 5px 11px; border-radius: 7px; cursor: pointer; font-weight: 600; font-size: 12.5px; color: var(--muted); white-space: nowrap; }
+.seg input:checked + span { background: var(--surface); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 6px; cursor: pointer; border: 1px solid var(--border);
+  background: var(--surface); padding: 7px 12px; border-radius: 9px; font-weight: 600; font-size: 12.5px; text-decoration: none;
+}
+.btn:hover { background: var(--surface-2); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.primary:hover { filter: brightness(1.05); }
+.btn.danger { color: var(--danger); }
+.icon-btn {
+  display: grid; place-items: center; width: 30px; height: 30px; border-radius: 8px; border: 0; background: transparent; cursor: pointer; color: var(--muted);
+}
+.icon-btn:hover { background: var(--surface-2); color: var(--text); }
+.icon-btn svg { width: 17px; height: 17px; }
+
+input[type="number"], select {
+  font: inherit; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 5px 8px;
+}
+input[type="number"] { width: 64px; }
+input:disabled, select:disabled { opacity: .5; }
+[data-disabled] { opacity: .5; }
+.btn:disabled { opacity: .45; cursor: not-allowed; filter: none; }

@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<title>Messagerie (mock)</title>
+<style>
+  body { font-family: sans-serif; margin: 0; display: flex; height: 100vh; }
+  .list { width: 360px; border-right: 1px solid #ddd; margin: 0; padding: 0; list-style: none; }
+  li.msg-conversation-listitem { border-bottom: 1px solid #eee; }
+  
+  .scaffold-layout__detail { flex: 1; }
+  .msg-thread { padding: 16px; }
+  .msg-title-bar { display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #eee; padding-bottom: 8px; }
+  .artdeco-dropdown__content { display: none; position: absolute; background: #fff; border: 1px solid #ccc; }
+  .artdeco-dropdown__content--is-open { display: block; }
+  .artdeco-dropdown__item { padding: 8px 12px; cursor: pointer; }
+  .artdeco-modal { position: fixed; top: 30%; left: 35%; background: #fff; border: 1px solid #333; padding: 20px; }
+</style>
+</head>
+<body>
+<div class="msg-conversations-container" style="width:360px;border-right:1px solid #ddd;display:flex;flex-direction:column">
+  <ul class="list msg-conversations-container__conversations-list" id="list" style="border:0;overflow-y:auto"></ul>
+</div>
+<div class="scaffold-layout__detail"><div class="msg-thread" id="pane"></div></div>
+<script src="/__fixtures.js"></script>
+<script>
+  const { ME, threads, conv } = FIX;
+
+  let loadedPages = 1;
+  function renderList() {
+    const ul = document.getElementById('list');
+    ul.innerHTML = '';
+    for (const t of threads.filter((x) => (x.page || 1) <= loadedPages)) {
+      const li = document.createElement('li');
+      li.className = 'msg-conversation-listitem';
+      // Comme sur LinkedIn : pas de href, un div cliquable
+      li.innerHTML = `<div class="msg-conversation-card"><div class="msg-conversation-listitem__link" tabindex="0" style="padding:12px 16px 26px;cursor:pointer">
+        <h3 class="msg-conversation-listitem__participant-names"><span class="truncate">${t.first} ${t.last}</span></h3>
+        <p class="msg-conversation-card__message-snippet">${t.snippet}</p>
+        ${t.unread ? `<span class="msg-conversation-card__unread-count">${t.unread}</span>` : ''}</div>
+        <div class="artdeco-dropdown"><button class="msg-thread-actions__control" aria-label="Ouvrir la liste des options dans votre conversation avec ${t.first} ${t.last}">…</button></div></div>`;
+      li.querySelector('.msg-conversation-listitem__link').addEventListener('click', () => openThread(t.id));
+      ul.appendChild(li);
+    }
+    if (threads.some((x) => (x.page || 1) > loadedPages)) {
+      const more = document.createElement('li');
+      more.className = 'p3';
+      more.innerHTML = '<button type="button">Charger plus de conversations</button>';
+      more.querySelector('button').addEventListener('click', () => { loadedPages++; renderList(); });
+      ul.appendChild(more);
+    }
+  }
+
+  function currentId() {
+    const m = location.pathname.match(/\/messaging\/thread\/([^/]+)/);
+    return m ? decodeURIComponent(m[1]) : null;
+  }
+
+  async function openThread(id, push = true) {
+    if (push) history.pushState({}, '', `/messaging/thread/${encodeURIComponent(id)}/`);
+    const t = threads.find((x) => x.id === id);
+    const pane = document.getElementById('pane');
+    if (!t) { pane.innerHTML = '<p>Aucune conversation</p>'; return; }
+    t.unread = 0;
+    await fetch(`/voyager/api/voyagerMessagingGraphQL/graphql?queryId=messengerMessages.abc&variables=(conversationUrn:${encodeURIComponent(conv(t))})`);
+    pane.innerHTML = `
+      <div class="msg-title-bar shared-title-bar">
+        <a class="msg-thread__link-to-profile" href="/in/${t.slug}/"><h2 class="msg-entity-lockup__entity-title">${t.first} ${t.last}</h2></a>
+        <div class="artdeco-dropdown">
+          <button class="msg-thread-actions__control" aria-label="Ouvrir la liste des options de votre conversation avec ${t.first} ${t.last}">…</button>
+          <div class="artdeco-dropdown__content" aria-hidden="true">
+            <div class="artdeco-dropdown__item" role="button">Marquer comme non lu</div>
+            <div class="artdeco-dropdown__item" role="button">Archiver</div>
+            <div class="artdeco-dropdown__item" role="button" data-del>Supprimer la discussion</div>
+          </div>
+        </div>
+      </div>
+      <ul class="msg-s-message-list">${t.msgs.map(([who]) => `<li class="msg-s-message-list__event"><div class="msg-s-event-listitem ${who === 'me' ? '' : 'msg-s-event-listitem--other'}">…</div></li>`).join('')}</ul>
+      <form class="msg-form"><button type="button" aria-label="Ouvrir les options d’envoi">⚙</button></form>`;
+    const btn = pane.querySelector('.msg-thread-actions__control');
+    const dd = pane.querySelector('.artdeco-dropdown__content');
+    btn.addEventListener('click', () => { const open = dd.classList.toggle('artdeco-dropdown__content--is-open'); dd.setAttribute('aria-hidden', String(!open)); });
+    dd.querySelector('[data-del]').addEventListener('click', () => {
+      dd.classList.remove('artdeco-dropdown__content--is-open');
+      const modal = document.createElement('div');
+      modal.className = 'artdeco-modal';
+      modal.setAttribute('role', 'alertdialog');
+      modal.innerHTML = `<h2>Supprimer la conversation ?</h2><button class="artdeco-button--secondary">Annuler</button> <button class="artdeco-button--primary">Supprimer</button>`;
+      modal.querySelector('.artdeco-button--secondary').onclick = () => modal.remove();
+      modal.querySelector('.artdeco-button--primary').onclick = () => {
+        modal.remove();
+        fetch(`/mock-log?action=delete&thread=${encodeURIComponent(id)}`);
+        threads.splice(threads.indexOf(t), 1);
+        renderList();
+        if (threads[0]) openThread(threads[0].id); else openThread(null);
+      };
+      document.body.appendChild(modal);
+    });
+  }
+
+  renderList();
+  fetch(`/voyager/api/voyagerMessagingGraphQL/graphql?queryId=messengerConversations.abc&variables=(mailboxUrn:urn%3Ali%3Afsd_profile%3A${ME})`)
+    .then(() => { const id = currentId(); if (id) openThread(id, false); });
+  window.addEventListener('popstate', () => openThread(currentId(), false));
+</script>
+</body>
+</html>

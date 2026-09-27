@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nettoyage en masse — UnLink</title>
+  <link rel="stylesheet" href="../ui/page.css" />
+  <link rel="stylesheet" href="bulk.css" />
+</head>
+<body>
+  <main class="wrap">
+    <header class="hero">
+      <img class="logo big" src="/icons/icon128.png" alt="" />
+      <div>
+        <h1>Nettoyage en masse</h1>
+        <p class="muted">Toutes les conversations éligibles, au même endroit. Décoche celles à garder : elles seront exclues définitivement.</p>
+      </div>
+    </header>
+
+    <section class="warning" role="note">
+      <b>On ne peut pas tout retirer d’un coup sans risque.</b>
+      LinkedIn peut restreindre un compte qui retire beaucoup de relations en peu de temps. UnLink en traite donc
+      <b id="per-run-warn">7 au maximum par lancement</b>, espacées dans le temps, en tâche de fond (tu peux fermer cette page ;
+      garde simplement un onglet LinkedIn ouvert). Le reste de la liste attend son tour : relance un lot plus tard,
+      ou ouvre une conversation (<b>Ouvrir ↗</b>) et nettoie-la toi-même avec <b>⚡ UnLink</b>.
+    </section>
+
+    <section class="card" id="setup">
+      <div class="options">
+        <label class="opt"><input type="checkbox" class="switch" id="opt-remove" checked /><span>Retirer la relation</span></label>
+        <label class="opt"><input type="checkbox" class="switch" id="opt-delete" checked /><span>Supprimer la conversation</span></label>
+        <div class="opt">
+          <span>Rythme</span>
+          <div class="seg" role="radiogroup" aria-label="Rythme">
+            <label><input type="radio" name="pace" value="safe" /><span>Prudent</span></label>
+            <label><input type="radio" name="pace" value="normal" checked /><span>Normal</span></label>
+            <label><input type="radio" name="pace" value="fast" /><span>Rapide</span></label>
+          </div>
+        </div>
+        <a class="opt chip-info" id="per-run" href="../options/options.html#bulk" target="_blank" title="Modifier dans les réglages">7 par lancement</a>
+      </div>
+      <p class="muted small" id="pace-hint"></p>
+    </section>
+
+    <section class="card list-card">
+      <p class="summary-line muted small" id="summary-line"></p>
+      <div class="toolbar">
+        <label class="check-all"><input type="checkbox" id="check-all" checked /><span id="sel-count">0 sélectionnée</span></label>
+        <input type="search" id="search" placeholder="Rechercher un nom…" aria-label="Rechercher un nom" />
+        <button class="btn" id="refresh" title="Recharger la liste depuis le cache">Actualiser</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th class="c-check"></th><th>Personne</th><th class="c-num">Sans réponse</th><th>Dernier message</th><th class="c-status">État</th><th class="c-open"></th></tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+        <div class="empty" id="empty" hidden>
+          <p class="empty-title" id="empty-title"></p>
+          <p class="muted" id="empty-text"></p>
+          <button class="btn primary" id="empty-action">Ouvrir ma messagerie LinkedIn</button>
+        </div>
+      </div>
+      <p class="muted small note">Seules les conversations déjà analysées apparaissent. Pour en analyser plus : messagerie LinkedIn → <b>⚡ Relances</b> → <b>+ 100 conversations</b>.</p>
+    </section>
+  </main>
+
+  <footer class="runbar">
+    <div class="progress"><i id="bar"></i></div>
+    <div class="runbar-inner">
+      <span id="run-status" class="muted">Prêt.</span>
+      <div class="actions">
+        <button class="btn" id="stop" hidden>Arrêter</button>
+        <button class="btn" id="pause" hidden>Pause</button>
+        <button class="btn primary" id="start">Lancer</button>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../shared/settings.js"></script>
+  <script src="../shared/stats.js"></script>
+  <script src="../shared/exclusions.js"></script>
+  <script src="bulk.js"></script>
+</body>
+</html>

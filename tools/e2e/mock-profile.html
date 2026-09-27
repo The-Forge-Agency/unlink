@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<title>Profil (mock)</title>
+<style>
+  body { font-family: sans-serif; margin: 0; }
+  main { padding: 24px; }
+  .artdeco-dropdown { display: inline-block; position: relative; }
+  .artdeco-dropdown__content { display: none; position: absolute; background: #fff; border: 1px solid #ccc; min-width: 220px; }
+  .artdeco-dropdown__content--is-open { display: block; }
+  .artdeco-dropdown__item { padding: 8px 12px; cursor: pointer; }
+  .artdeco-modal { position: fixed; top: 30%; left: 35%; background: #fff; border: 1px solid #333; padding: 20px; }
+  .activity { margin-top: 1800px; }
+</style>
+</head>
+<body>
+<!-- Reproduit la structure réelle du profil LinkedIn (interface React, septembre 2026) -->
+<header><button aria-label="Plus" aria-expanded="false" style="display:none">…</button></header>
+<main>
+  <section>
+    <h1 id="name"></h1>
+    <a href="/messaging/compose/">Message</a>
+    <div data-display-contents="true" style="display:inline-block;position:relative">
+      <button id="more" type="button" aria-label="Plus" aria-expanded="false">⋯</button>
+      <span data-menu-portal-anchor=""></span>
+    </div>
+  </section>
+  <section class="activity"><button aria-label="Plus">⋯</button><div role="button">Ne plus suivre ACME</div></section>
+</main>
+<script>
+  // Scénarios : jean = relation + suivi ; paul = ni relation ni suivi
+  const slug = location.pathname.split('/')[2];
+  const name = slug.split('-').map((s) => s[0].toUpperCase() + s.slice(1)).join(' ');
+  const state = slug.startsWith('paul') ? { following: false, connected: false } : { following: true, connected: true };
+  document.getElementById('name').textContent = name;
+  const log = (action) => fetch(`/mock-log?action=${action}&profile=${slug}`);
+  const more = document.getElementById('more');
+  let menu = null;
+  const item = (label, text, onClick) => {
+    const it = document.createElement('div');
+    it.setAttribute('role', 'menuitem');
+    it.tabIndex = 0;
+    it.innerHTML = `<div ${label ? `aria-label="${label}"` : ''}><svg></svg><div><p>${text}</p></div></div>`;
+    if (onClick) it.addEventListener('click', onClick);
+    return it;
+  };
+  function closeMenu() { menu?.remove(); menu = null; more.setAttribute('aria-expanded', 'false'); }
+  function openMenu() {
+    menu = document.createElement('div');
+    menu.setAttribute('role', 'menu');
+    menu.style.cssText = 'position:absolute;top:30px;left:0;background:#fff;border:1px solid #ccc;padding:4px;width:260px';
+    menu.append(item('', 'Envoyer le profil dans un message'), item('', 'Enregistrer au format PDF'));
+    if (state.following) menu.append(item(`Suivi, cliquez pour ne plus suivre ${name}`, 'Suivi', () => { closeMenu(); state.following = false; log('unfollow'); }));
+    else menu.append(item(`Suivre ${name}`, 'Suivre'));
+    if (state.connected) menu.append(item('Supprimer la relation', 'Supprimer la relation', () => { closeMenu(); confirmRemove(); }));
+    else menu.append(item(`Inviter ${name}`, 'Se connecter'));
+    menu.append(item('', 'Signaler / Bloquer'));
+    more.parentElement.appendChild(menu);
+    more.setAttribute('aria-expanded', 'true');
+  }
+  function confirmRemove() {
+    const modal = document.createElement('div');
+    modal.setAttribute('role', 'dialog');
+    modal.style.cssText = 'position:fixed;top:30%;left:30%;background:#fff;border:1px solid #333;padding:20px';
+    modal.innerHTML = `<h2>Supprimer la relation</h2><p>Voulez-vous vraiment supprimer ${name} de vos relations ?</p>
+      <button aria-label="Ignorer">×</button> <button data-c>Annuler</button> <button data-ok>Supprimer</button>`;
+    modal.querySelector('[data-c]').onclick = () => modal.remove();
+    // La mise à jour de l'état arrive avec un léger délai, comme sur LinkedIn
+    modal.querySelector('[data-ok]').onclick = () => { modal.remove(); setTimeout(() => { state.connected = false; log('remove'); }, 300); };
+    document.body.appendChild(modal);
+  }
+  // Menu type Radix : s'ouvre au pointerdown, se ferme au 2e appui
+  more.addEventListener('pointerdown', () => (menu ? closeMenu() : openMenu()));
+  document.addEventListener('keydown', (e) => e.key === 'Escape' && closeMenu());
+</script>
+</body>
+</html>

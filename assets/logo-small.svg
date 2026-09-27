@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <!-- Variante 16/32 px : maillons épais et bien séparés, sans l'éclair (illisible à cette taille) -->
+  <rect width="128" height="128" rx="28" fill="#F5A30B"/>
+  <g transform="translate(12 12) scale(4.33)" fill="none" stroke="#18202E" stroke-width="3.1" stroke-linecap="round" stroke-linejoin="round">
+    <path transform="translate(16.9 7.1) rotate(-45)" d="M -1.4 -3 H 1.5 A 3 3 0 0 1 1.5 3 H -1.4"/>
+    <path transform="translate(7.1 16.9) rotate(-45)" d="M 1.4 -3 H -1.5 A 3 3 0 0 0 -1.5 3 H 1.4"/>
+  </g>
+</svg>
